@@ -29,7 +29,6 @@ export default async function handler(req, res) {
 
     const text = data.choices?.[0]?.message?.content || '';
 
-    // App.jsxを変えなくていいようにAnthropicと同じ形式で返す
     return res.status(200).json({
       content: [{ type: 'text', text }]
     });
