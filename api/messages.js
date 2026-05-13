@@ -1,40 +1,35 @@
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) return res.status(500).json({ error: { message: 'API key not configured' } });
 
   try {
     const { messages, system, max_tokens } = req.body;
 
-    const contents = messages.map(m => ({
-      role: m.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: m.content }]
-    }));
+    const groqMessages = [];
+    if (system) groqMessages.push({ role: 'system', content: system });
+    groqMessages.push(...messages);
 
-    const geminiBody = {
-      contents,
-      generationConfig: { maxOutputTokens: max_tokens || 1000 }
-    };
-
-    if (system) {
-      geminiBody.systemInstruction = { parts: [{ text: system }] };
-    }
-
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(geminiBody)
-      }
-    );
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: groqMessages,
+        max_tokens: max_tokens || 1000
+      })
+    });
 
     const data = await response.json();
     if (data.error) throw new Error(data.error.message);
 
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const text = data.choices?.[0]?.message?.content || '';
 
+    // App.jsxを変えなくていいようにAnthropicと同じ形式で返す
     return res.status(200).json({
       content: [{ type: 'text', text }]
     });
