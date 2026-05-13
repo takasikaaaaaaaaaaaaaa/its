@@ -26,7 +26,7 @@ const GS = () => (
 const TABS = [
   { id: "notes",    icon: "📝", label: "ノート" },
   { id: "tasks",    icon: "✅", label: "タスク" },
-  { id: "advice",   icon: "🧠", label: "アドバイス" },
+  { id: "advice",   icon: "💡", label: "アドバイス" },
   { id: "quiz",     icon: "❓", label: "問題作成" },
 ];
 
